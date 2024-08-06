@@ -8,7 +8,8 @@ fi
 
 # Extract the domain from the email address
 email_address=$1
-echo "Checking $email_address"
+echo -e "\U1f50e Checking $email_address \U1f50e"
+echo
 domain=$(echo $email_address | awk -F '@' '{print $2}')
 
 # Check if the domain is valid
@@ -17,20 +18,26 @@ if [ -z "$domain" ]; then
   exit 1
 fi
 
-# Run nslookup to get the MX records
-echo "Running nslookup for domain: $domain"
-nslookup_output=$(nslookup -type=mx "$domain")
-if [ $? -ne 0 ]; then
-  echo "Error running nslookup. Exiting."
+# Run dig to get MX records
+echo "Looking for mail servers on domain: $domain"
+echo
+mx_records=$(dig +short "$domain" mx)
+
+# Check if dig command was successful and MX records were found
+if [ -z "$mx_records" ]; then
+  echo "No MX records found or dig command failed. Exiting."
   exit 1
 fi
 
-# Display the output of nslookup
-echo "$nslookup_output"
+# Display the MX records
+echo "Available mail servers:"
+echo "$mx_records"
+echo
 
 # Prompt the user to supply the address of a mail server
 echo -n "Enter the address of a mail server: "
 read -r mail_server
+echo 
 
 # Check if mail_server is empty
 if [ -z "$mail_server" ]; then
@@ -39,25 +46,28 @@ if [ -z "$mail_server" ]; then
 fi
 
 # Establish a telnet connection to the mail server on port 25
-echo "Connecting to $mail_server on port 25..."
+echo "Checking the email address on the mail server"
 telnet_output=$( { 
   {
     sleep 2
     echo "HELO $domain"
-    sleep 2
-    echo "MAIL FROM:<test@gmail.com>"
-    sleep 2
+    sleep 1
+    echo "MAIL FROM:<test@example.com>"
+    sleep 1
+
     echo "RCPT TO:<$email_address>"
-    sleep 2
+    sleep 1
     echo "QUIT"
-    sleep 2
   } | telnet "$mail_server" 25
 } 2>&1 )
 
 rcpt_to_response=$(echo "$telnet_output" | grep '250 2.1.5')
 
 if [ -n "$rcpt_to_response" ]; then
-  echo "RCPT TO command successful. Email address is probably OK"
+  echo -e "\U2705 RCPT TO:<$email_address> succeeded. Email address is probably OK"
 else
-  echo "RCPT TO command failed. Email address is unreachable or doesn't exist"
+  echo -e "\U274C RCPT TO:<$email_address> failed. Email address is unreachable or doesn't exist."
+  echo
+  echo "Telnet output:"
+  echo "$telnet_output"
 fi
