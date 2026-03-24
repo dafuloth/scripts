@@ -16,7 +16,7 @@ This `monitorsleeper.swift` compiles into a lightweight executable that listens 
 
 2. Create LaunchAgent to automatically run the binary at login
 
-   `~/Library/LaunchAgents/com.user.monitorsleeper.plist)`
+   `~/Library/LaunchAgents/com.user.monitorsleeper.plist`
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
@@ -29,7 +29,7 @@ This `monitorsleeper.swift` compiles into a lightweight executable that listens 
    <array>
        <string>/Users/USERNAME/monitor_sleeper</string>
    </array>
-   U   <key>KeepAlive</key>
+       <key>KeepAlive</key>
    <true/>
    <key>RunAtLoad</key>
    <true/>
